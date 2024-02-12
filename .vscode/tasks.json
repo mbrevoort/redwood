@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Serve Redwood Test App",
+			"type": "shell",
+			"command": "cd /workspaces/rw-test-app && yarn rw dev",
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"isBackground": false
+		}
+	]
+}
