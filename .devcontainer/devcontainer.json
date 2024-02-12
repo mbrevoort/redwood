@@ -3,7 +3,6 @@
 	"image": "mcr.microsoft.com/vscode/devcontainers/typescript-node",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/devcontainers-contrib/features/corepack:1": {}
 	},
 
 	"postCreateCommand": "bash .devcontainer/post-create.sh",
