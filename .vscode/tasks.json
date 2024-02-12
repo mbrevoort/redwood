@@ -9,7 +9,10 @@
 				"kind": "test",
 				"isDefault": true
 			},
-			"isBackground": false
+			"isBackground": false,
+			"runOptions": {
+				"runOn": "folderOpen"
+			}
 		}
 	]
 }
