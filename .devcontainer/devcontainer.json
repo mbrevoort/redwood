@@ -5,6 +5,6 @@
 	"features": {
 	},
 
-	"postCreateCommand": "bash .devcontainer/post-create.sh",
-	"waitFor": "postCreateCommand"
+	"postCreateCommand": "bash .devcontainer/post-create.sh"
+	// "waitFor": "postCreateCommand"
 }
