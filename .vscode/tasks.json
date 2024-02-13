@@ -10,6 +10,21 @@
 				"isDefault": true
 			},
 			"isBackground": false,
+			"dependsOn": "Install Redwood Dependencies",
+			"runOptions": {
+				"runOn": "folderOpen"
+			}
+		}
+	,
+		{
+			"label": "Install Redwood Dependencies",
+			"type": "shell",
+			"command": "bash .devcontainer/post-create.sh",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"isBackground": false,
 			"runOptions": {
 				"runOn": "folderOpen"
 			}

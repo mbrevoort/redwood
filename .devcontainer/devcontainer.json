@@ -3,8 +3,8 @@
 	"image": "mcr.microsoft.com/vscode/devcontainers/typescript-node",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-	},
+	}
 
-	"postCreateCommand": "bash .devcontainer/post-create.sh"
+	// "postCreateCommand": "bash .devcontainer/post-create.sh"
 	// "waitFor": "postCreateCommand"
 }
