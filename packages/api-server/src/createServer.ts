@@ -29,7 +29,7 @@ interface Server extends FastifyInstance {
 // ```
 //
 // We do it here and not in the function below so that users can access env vars before calling `createServer`
-if (process.env.RWJS_CWD && !process.env.REDWOOD_ENV_FILES_LOADED) {
+if (!process.env.REDWOOD_ENV_FILES_LOADED) {
   config({
     path: path.join(getPaths().base, '.env'),
     defaults: path.join(getPaths().base, '.env.defaults'),
@@ -64,13 +64,13 @@ if (process.env.RWJS_CWD && !process.env.REDWOOD_ENV_FILES_LOADED) {
  * ```
  */
 export async function createServer(options: CreateServerOptions = {}) {
-  const { apiRootPath, fastifyServerOptions, port, host } =
+  const { apiRootPath, fastifyServerOptions, apiPort, apiHost } =
     resolveOptions(options)
 
   // Warn about `api/server.config.js`
   const serverConfigPath = path.join(
     getPaths().base,
-    getConfig().api.serverConfig
+    getConfig().api.serverConfig,
   )
 
   if (fs.existsSync(serverConfigPath)) {
@@ -91,8 +91,8 @@ export async function createServer(options: CreateServerOptions = {}) {
           'server.register(myFastifyPlugin)',
           '```',
           '',
-        ].join('\n')
-      )
+        ].join('\n'),
+      ),
     )
   }
 
@@ -147,25 +147,25 @@ export async function createServer(options: CreateServerOptions = {}) {
   server.addHook('onListen', (done) => {
     console.log(
       `Server listening at ${chalk.magenta(
-        `${server.listeningOrigin}${apiRootPath}`
-      )}`
+        `${server.listeningOrigin}${apiRootPath}`,
+      )}`,
     )
     done()
   })
 
   /**
-   * A wrapper around `fastify.listen` that handles `--port`, `REDWOOD_API_PORT` and [api].port in redwood.toml
+   * A wrapper around `fastify.listen` that handles `--apiPort`, `REDWOOD_API_PORT` and [api].port in redwood.toml (same for host)
    *
    * The order of precedence is:
-   * - `--port`
+   * - `--apiPort`
    * - `REDWOOD_API_PORT`
    * - [api].port in redwood.toml
    */
   server.start = (options: StartOptions = {}) => {
     return server.listen({
       ...options,
-      port,
-      host,
+      port: apiPort,
+      host: apiHost,
     })
   }
 

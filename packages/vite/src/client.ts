@@ -1,12 +1,13 @@
 import { cache, use, useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 
+import type { Options } from 'react-server-dom-webpack/client'
 import { createFromFetch, encodeReply } from 'react-server-dom-webpack/client'
 
-import { StatusError } from './lib/StatusError'
+import { StatusError } from './lib/StatusError.js'
 
 const checkStatus = async (
-  responsePromise: Promise<Response>
+  responsePromise: Promise<Response>,
 ): Promise<Response> => {
   const response = await responsePromise
 
@@ -17,15 +18,32 @@ const checkStatus = async (
   return response
 }
 
-export function serve<Props>(rscId: string, basePath = '/rw-rsc/') {
+const BASE_PATH = '/rw-rsc/'
+
+export function renderFromRscServer<TProps>(rscId: string) {
+  console.log('serve rscId (renderFromRscServer)', rscId)
+
+  // TODO (RSC): Remove this when we have a babel plugin to call another
+  // function during SSR
+  if (typeof window === 'undefined') {
+    // Temporarily skip rendering this component during SSR
+    return null
+  }
+
   type SetRerender = (
-    rerender: (next: [ReactElement, string]) => void
+    rerender: (next: [Thenable<ReactElement>, string]) => void,
   ) => () => void
+
   const fetchRSC = cache(
-    (serializedProps: string): readonly [React.ReactElement, SetRerender] => {
+    (
+      serializedProps: string,
+    ): readonly [Thenable<ReactElement>, SetRerender] => {
       console.log('fetchRSC serializedProps', serializedProps)
 
-      let rerender: ((next: [ReactElement, string]) => void) | undefined
+      let rerender:
+        | ((next: [Thenable<ReactElement>, string]) => void)
+        | undefined
+
       const setRerender: SetRerender = (fn) => {
         rerender = fn
         return () => {
@@ -36,9 +54,12 @@ export function serve<Props>(rscId: string, basePath = '/rw-rsc/') {
       const searchParams = new URLSearchParams()
       searchParams.set('props', serializedProps)
 
-      const options = {
-        async callServer(rsfId: string, args: unknown[]) {
+      const options: Options<unknown[], ReactElement> = {
+        // `args` is often going to be an array with just a single element,
+        // and that element will be FormData
+        callServer: async function (rsfId: string, args: unknown[]) {
           console.log('client.ts :: callServer rsfId', rsfId, 'args', args)
+
           const isMutating = !!mutationMode
           const searchParams = new URLSearchParams()
           searchParams.set('action_id', rsfId)
@@ -51,7 +72,7 @@ export function serve<Props>(rscId: string, basePath = '/rw-rsc/') {
             id = '_'
           }
 
-          const response = fetch(basePath + id + '/' + searchParams, {
+          const response = fetch(BASE_PATH + id + '?' + searchParams, {
             method: 'POST',
             body: await encodeReply(args),
             headers: {
@@ -75,12 +96,12 @@ export function serve<Props>(rscId: string, basePath = '/rw-rsc/') {
 
       console.log(
         'fetchRSC before createFromFetch',
-        basePath + rscId + '/' + searchParams
+        BASE_PATH + rscId + '?' + searchParams,
       )
 
       const response =
         prefetched ||
-        fetch(basePath + rscId + '/' + searchParams, {
+        fetch(BASE_PATH + rscId + '?' + searchParams, {
           headers: {
             'rw-rsc': '1',
           },
@@ -89,19 +110,20 @@ export function serve<Props>(rscId: string, basePath = '/rw-rsc/') {
       console.log('fetchRSC after createFromFetch. data:', data)
 
       return [data, setRerender]
-    }
+    },
   )
 
   // Create temporary client component that wraps the ServerComponent returned
   // by the `createFromFetch` call.
-  const ServerComponent = (props: Props) => {
-    console.log('ServerComponent props', props)
+  const ServerComponent = (props: TProps) => {
+    console.log('ServerComponent', rscId, 'props', props)
 
     // FIXME we blindly expect JSON.stringify usage is deterministic
     const serializedProps = JSON.stringify(props || {})
     const [data, setRerender] = fetchRSC(serializedProps)
     const [state, setState] = useState<
-      [dataToOverride: ReactElement, lastSerializedProps: string] | undefined
+      | [dataToOverride: Thenable<ReactElement>, lastSerializedProps: string]
+      | undefined
     >()
 
     // MARK Should this be useLayoutEffect?
@@ -117,12 +139,18 @@ export function serve<Props>(rscId: string, basePath = '/rw-rsc/') {
       }
     }
 
-    // FIXME The type error
-    // "Cannot read properties of null (reading 'alternate')"
-    // is caused with startTransition.
-    // Not sure if it's a React bug or our misusage.
-    // For now, using `use` seems to fix it. Is it a correct fix?
-    return use(dataToReturn as any) as typeof dataToReturn
+    // `use()` will throw a `SuspenseException` as long as `dataToReturn` is
+    // unfulfilled. React internally tracks this promise and re-renders this
+    // component when the promise resolves. When the promise is resolved no
+    // exception will be thrown and the actual value of the promise will be
+    // returned instead
+    // The closest suspense boundary will render its fallback when the
+    // exception is thrown
+    return use(dataToReturn)
+
+    // TODO (RSC): Might be an issue with `use` above with startTransition
+    // according to the waku sources I copied this from. We need to figure out
+    // if this is the right way to do things
   }
 
   return ServerComponent

@@ -1,6 +1,7 @@
 globalThis.__dirname = __dirname
 import path from 'path'
 
+import { vol } from 'memfs'
 import { vi, describe, beforeAll, test, expect } from 'vitest'
 
 // Load mocks
@@ -10,12 +11,14 @@ import { getDefaultArgs } from '../../../../lib'
 import { yargsDefaults as defaults } from '../../helpers'
 import * as scaffold from '../scaffold'
 
+vi.mock('fs', async () => ({ default: (await import('memfs')).fs }))
 vi.mock('execa')
 
 describe('in javascript (default) mode', () => {
   let files
 
   beforeAll(async () => {
+    vol.fromJSON({ 'redwood.toml': '' }, '/')
     files = await scaffold.files({
       ...getDefaultArgs(defaults),
       model: 'Post',
@@ -53,7 +56,7 @@ describe('in javascript (default) mode', () => {
 
   test('creates a stylesheet', () => {
     expect(
-      files[path.normalize('/path/to/project/web/src/scaffold.css')]
+      files[path.normalize('/path/to/project/web/src/scaffold.css')],
     ).toMatchSnapshot()
   })
 
@@ -63,9 +66,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/layouts/ScaffoldLayout/ScaffoldLayout.jsx'
+          '/path/to/project/web/src/layouts/ScaffoldLayout/ScaffoldLayout.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -75,9 +78,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/pages/EditPostPage/EditPostPage.jsx'
+          '/path/to/project/web/src/pages/EditPostPage/EditPostPage.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -85,7 +88,7 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize('/path/to/project/web/src/pages/PostsPage/PostsPage.jsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -93,9 +96,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/pages/NewPostPage/NewPostPage.jsx'
+          '/path/to/project/web/src/pages/NewPostPage/NewPostPage.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -103,7 +106,7 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize('/path/to/project/web/src/pages/PostPage/PostPage.jsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -113,9 +116,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/components/PostEditCell/PostEditCell.jsx'
+          '/path/to/project/web/src/components/PostEditCell/PostEditCell.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -123,9 +126,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/components/PostsCell/PostsCell.jsx'
+          '/path/to/project/web/src/components/PostsCell/PostsCell.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -133,9 +136,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/components/PostCell/PostCell.jsx'
+          '/path/to/project/web/src/components/PostCell/PostCell.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -145,9 +148,9 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/components/PostForm/PostForm.jsx'
+          '/path/to/project/web/src/components/PostForm/PostForm.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -155,7 +158,7 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize('/path/to/project/web/src/components/Posts/Posts.jsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -163,15 +166,17 @@ describe('in javascript (default) mode', () => {
     expect(
       files[
         path.normalize(
-          '/path/to/project/web/src/components/PostNew/PostNew.jsx'
+          '/path/to/project/web/src/components/PostNew/PostNew.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
   test('creates a show component', async () => {
     expect(
-      files[path.normalize('/path/to/project/web/src/components/Post/Post.jsx')]
+      files[
+        path.normalize('/path/to/project/web/src/components/Post/Post.jsx')
+      ],
     ).toMatchSnapshot()
   })
 
@@ -179,7 +184,7 @@ describe('in javascript (default) mode', () => {
 
   test('creates a single-word name routes', async () => {
     expect(
-      await scaffold.routes({ model: 'Post', nestScaffoldByModel: false })
+      await scaffold.routes({ model: 'Post', nestScaffoldByModel: false }),
     ).toEqual([
       '<Route path="/posts/new" page={NewPostPage} name="newPost" />',
       '<Route path="/posts/{id:Int}/edit" page={EditPostPage} name="editPost" />',
@@ -193,7 +198,7 @@ describe('in javascript (default) mode', () => {
       await scaffold.routes({
         model: 'UserProfile',
         nestScaffoldByModel: false,
-      })
+      }),
     ).toEqual([
       '<Route path="/user-profiles/new" page={NewUserProfilePage} name="newUserProfile" />',
       '<Route path="/user-profiles/{id:Int}/edit" page={EditUserProfilePage} name="editUserProfile" />',
@@ -213,7 +218,7 @@ describe('in javascript (default) mode', () => {
     const cell =
       userProfileFiles[
         path.normalize(
-          '/path/to/project/web/src/components/UserProfilesCell/UserProfilesCell.jsx'
+          '/path/to/project/web/src/components/UserProfilesCell/UserProfilesCell.jsx',
         )
       ]
     const query = cell.match(/(userProfiles.*?\})/s)[1]
@@ -230,7 +235,7 @@ describe('in javascript (default) mode', () => {
     const cell =
       userProfileFiles[
         path.normalize(
-          '/path/to/project/web/src/components/UserProfileCell/UserProfileCell.jsx'
+          '/path/to/project/web/src/components/UserProfileCell/UserProfileCell.jsx',
         )
       ]
     const query = cell.match(/(userProfile.*?\})/s)[1]
@@ -247,7 +252,7 @@ describe('in javascript (default) mode', () => {
     const cell =
       userProfileFiles[
         path.normalize(
-          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.jsx'
+          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.jsx',
         )
       ]
     const query = cell.match(/(userProfile.*?\})/s)[1]
@@ -267,9 +272,9 @@ describe('in javascript (default) mode', () => {
     expect(
       foreignKeyFiles[
         path.normalize(
-          '/path/to/project/web/src/components/NewUserProfile/NewUserProfile.jsx'
+          '/path/to/project/web/src/components/NewUserProfile/NewUserProfile.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -283,9 +288,9 @@ describe('in javascript (default) mode', () => {
     expect(
       foreignKeyFiles[
         path.normalize(
-          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.jsx'
+          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.jsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 })
@@ -333,7 +338,7 @@ describe('in typescript mode', () => {
 
   test('creates a stylesheet', () => {
     expect(
-      tsFiles[path.normalize('/path/to/project/web/src/scaffold.css')]
+      tsFiles[path.normalize('/path/to/project/web/src/scaffold.css')],
     ).toMatchSnapshot()
   })
 
@@ -343,9 +348,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/layouts/ScaffoldLayout/ScaffoldLayout.tsx'
+          '/path/to/project/web/src/layouts/ScaffoldLayout/ScaffoldLayout.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -355,9 +360,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/pages/EditPostPage/EditPostPage.tsx'
+          '/path/to/project/web/src/pages/EditPostPage/EditPostPage.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -365,7 +370,7 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize('/path/to/project/web/src/pages/PostsPage/PostsPage.tsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -373,9 +378,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/pages/NewPostPage/NewPostPage.tsx'
+          '/path/to/project/web/src/pages/NewPostPage/NewPostPage.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -383,7 +388,7 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize('/path/to/project/web/src/pages/PostPage/PostPage.tsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -393,9 +398,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/components/EditPostCell/EditPostCell.tsx'
+          '/path/to/project/web/src/components/EditPostCell/EditPostCell.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -403,9 +408,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/components/PostsCell/PostsCell.tsx'
+          '/path/to/project/web/src/components/PostsCell/PostsCell.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -413,9 +418,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/components/PostCell/PostCell.tsx'
+          '/path/to/project/web/src/components/PostCell/PostCell.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -425,9 +430,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/components/PostForm/PostForm.tsx'
+          '/path/to/project/web/src/components/PostForm/PostForm.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -435,7 +440,7 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize('/path/to/project/web/src/components/Posts/Posts.tsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -443,9 +448,9 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize(
-          '/path/to/project/web/src/components/PostNew/PostNew.tsx'
+          '/path/to/project/web/src/components/PostNew/PostNew.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -453,7 +458,7 @@ describe('in typescript mode', () => {
     expect(
       tsFiles[
         path.normalize('/path/to/project/web/src/components/Post/Post.tsx')
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -461,7 +466,7 @@ describe('in typescript mode', () => {
 
   test('creates a single-word name routes', async () => {
     expect(
-      await scaffold.routes({ model: 'Post', nestScaffoldByModel: false })
+      await scaffold.routes({ model: 'Post', nestScaffoldByModel: false }),
     ).toEqual([
       '<Route path="/posts/new" page={NewPostPage} name="newPost" />',
       '<Route path="/posts/{id:Int}/edit" page={EditPostPage} name="editPost" />',
@@ -475,7 +480,7 @@ describe('in typescript mode', () => {
       await scaffold.routes({
         model: 'UserProfile',
         nestScaffoldByModel: false,
-      })
+      }),
     ).toEqual([
       '<Route path="/user-profiles/new" page={NewUserProfilePage} name="newUserProfile" />',
       '<Route path="/user-profiles/{id:Int}/edit" page={EditUserProfilePage} name="editUserProfile" />',
@@ -495,7 +500,7 @@ describe('in typescript mode', () => {
     const cell =
       userProfileFiles[
         path.normalize(
-          '/path/to/project/web/src/components/UserProfilesCell/UserProfilesCell.jsx'
+          '/path/to/project/web/src/components/UserProfilesCell/UserProfilesCell.jsx',
         )
       ]
     const query = cell.match(/(userProfiles.*?\})/s)[1]
@@ -512,7 +517,7 @@ describe('in typescript mode', () => {
     const cell =
       userProfileFiles[
         path.normalize(
-          '/path/to/project/web/src/components/UserProfileCell/UserProfileCell.jsx'
+          '/path/to/project/web/src/components/UserProfileCell/UserProfileCell.jsx',
         )
       ]
     const query = cell.match(/(userProfile.*?\})/s)[1]
@@ -530,7 +535,7 @@ describe('in typescript mode', () => {
     const cell =
       userProfileFiles[
         path.normalize(
-          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.tsx'
+          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.tsx',
         )
       ]
     const query = cell.match(/(userProfile.*?\})/s)[1]
@@ -551,9 +556,9 @@ describe('in typescript mode', () => {
     expect(
       foreignKeyFiles[
         path.normalize(
-          '/path/to/project/web/src/components/NewUserProfile/NewUserProfile.tsx'
+          '/path/to/project/web/src/components/NewUserProfile/NewUserProfile.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 
@@ -568,9 +573,9 @@ describe('in typescript mode', () => {
     expect(
       foreignKeyFiles[
         path.normalize(
-          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.tsx'
+          '/path/to/project/web/src/components/EditUserProfileCell/EditUserProfileCell.tsx',
         )
-      ]
+      ],
     ).toMatchSnapshot()
   })
 })

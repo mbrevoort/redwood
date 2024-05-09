@@ -5,16 +5,16 @@ import { Suspense } from 'react'
 // Class components are not supported on the server
 // https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#when-to-use-server-and-client-components
 // Consider https://github.com/bvaughn/react-error-boundary
-// import { CellErrorBoundary } from './CellErrorBoundary'
-import type { CreateCellProps } from './cellTypes'
-import { isDataEmpty } from './isCellEmpty'
+// import { CellErrorBoundary } from './CellErrorBoundary.js'
+import type { CreateCellProps } from './cellTypes.js'
+import { isDataEmpty } from './isCellEmpty.js'
 
 // TODO(RSC): Clean this type up and consider moving to cellTypes
 type CreateServerCellProps<CellProps, CellVariables> = Omit<
   CreateCellProps<CellProps, CellVariables>,
   'QUERY' | 'Failure'
 > & {
-  DATA: (variables?: AnyObj) => any
+  data: (variables?: AnyObj) => any
   Failure?: React.ComponentType<{
     error: unknown
     queryResult: { refetch: (variables: CellProps) => AnyObj }
@@ -25,12 +25,12 @@ type AnyObj = Record<string, unknown>
 
 export function createServerCell<
   CellProps extends AnyObj,
-  CellVariables extends AnyObj
+  CellVariables extends AnyObj,
 >(
-  createCellProps: CreateServerCellProps<CellProps, CellVariables> // 👈 AnyObj, because using CellProps causes a TS error
+  createCellProps: CreateServerCellProps<CellProps, CellVariables>, // 👈 AnyObj, because using CellProps causes a TS error
 ): React.FC<CellProps> {
   const {
-    DATA,
+    data: dataFn,
     isEmpty = isDataEmpty,
     Loading,
     Failure,
@@ -51,7 +51,7 @@ export function createServerCell<
       const queryResultWithRefetch = {
         refetch: (variables: CellProps | undefined) => {
           // TODO (RSC): How do we refresh the page with new data?
-          return DATA(variables)
+          return dataFn(variables)
         },
       }
 
@@ -59,7 +59,7 @@ export function createServerCell<
     }
 
     try {
-      const data = await DATA(variables)
+      const data = await dataFn(variables)
 
       if (isEmpty(data, { isDataEmpty }) && Empty) {
         return <Empty {...props} {...data} />
@@ -77,7 +77,7 @@ export function createServerCell<
   return (props: CellProps) => {
     const wrapInSuspenseIfLoadingPresent = (
       suspendingSuccessElement: React.ReactNode,
-      LoadingComponent: typeof Loading
+      LoadingComponent: typeof Loading,
     ) => {
       if (!LoadingComponent) {
         return suspendingSuccessElement
@@ -97,7 +97,7 @@ export function createServerCell<
       <>
         {wrapInSuspenseIfLoadingPresent(
           <SuspendingSuccess {...props} />,
-          Loading
+          Loading,
         )}
       </>
       // </CellErrorBoundary>
